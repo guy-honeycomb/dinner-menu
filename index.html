@@ -269,6 +269,17 @@
   </div>
 
   <div id="view-admin" class="admin" role="tabpanel" aria-labelledby="tab-admin" hidden>
+
+    <div id="admin-gate" class="field-row">
+      <label for="f-pass">סיסמת עריכה</label>
+      <input type="password" id="f-pass" autocomplete="off" inputmode="numeric">
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-unlock">כניסה</button>
+      </div>
+      <p class="status" id="gate-status" role="status"></p>
+    </div>
+
+    <div id="admin-body" hidden>
     <p class="admin-intro">
       עריכה נשמרת מיד במכשיר. לחיצה על "פרסם לכולם" כותבת את התפריט
       ל-GitHub, והאורחים רואים אותו תוך כדקה.
@@ -317,6 +328,7 @@
         לחצו על העיפרון, הדביקו ושמרו. הכתובת וה-QR לא משתנים לעולם.
       </p>
     </div>
+    </div>
   </div>
 
 </div>
@@ -327,6 +339,11 @@
 
   var DRAFT_KEY = "dinner-menu-draft";
   var TOKEN_KEY = "dinner-menu-token";
+  var UNLOCK_KEY = "dinner-menu-unlocked";
+  // A gate on the editing UI, not a security boundary: this page is public,
+  // so anyone can read this value in the source. What actually protects the
+  // repository is the GitHub token, which never lives in this file.
+  var EDIT_PASSWORD = "1234567890";
   var REPO = { owner: "guy-honeycomb", name: "dinner-menu", path: "menu.json", branch: "main" };
   var API = "https://api.github.com/repos/" + REPO.owner + "/" + REPO.name + "/contents/" + REPO.path;
   var data = null;
@@ -436,7 +453,11 @@
     document.getElementById("view-admin").hidden = !isAdmin;
     document.getElementById("tab-menu").setAttribute("aria-selected", String(!isAdmin));
     document.getElementById("tab-admin").setAttribute("aria-selected", String(isAdmin));
-    if (isAdmin) { renderEditor(); document.getElementById("out").value = serialise(); }
+    if (isAdmin) {
+      applyLock();
+      renderEditor();
+      document.getElementById("out").value = serialise();
+    }
   }
 
   document.getElementById("tab-menu").addEventListener("click", function () {
@@ -447,6 +468,37 @@
   document.getElementById("tab-admin").addEventListener("click", function () {
     location.hash = "admin";
     showTab("admin");
+  });
+
+  /* ---------- edit gate ---------- */
+
+  function unlocked() {
+    try { return localStorage.getItem(UNLOCK_KEY) === "yes"; } catch (e) { return false; }
+  }
+
+  function applyLock() {
+    var open = unlocked();
+    document.getElementById("admin-gate").hidden = open;
+    document.getElementById("admin-body").hidden = !open;
+  }
+
+  function tryUnlock() {
+    var box = document.getElementById("gate-status");
+    if (document.getElementById("f-pass").value.trim() !== EDIT_PASSWORD) {
+      box.textContent = "סיסמה שגויה";
+      return;
+    }
+    try { localStorage.setItem(UNLOCK_KEY, "yes"); } catch (e) { /* private mode */ }
+    document.getElementById("f-pass").value = "";
+    box.textContent = "";
+    applyLock();
+    renderEditor();
+    document.getElementById("out").value = serialise();
+  }
+
+  document.getElementById("btn-unlock").addEventListener("click", tryUnlock);
+  document.getElementById("f-pass").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { tryUnlock(); }
   });
 
   /* ---------- actions ---------- */

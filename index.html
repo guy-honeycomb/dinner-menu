@@ -270,7 +270,8 @@
 
   <div id="view-admin" class="admin" role="tabpanel" aria-labelledby="tab-admin" hidden>
     <p class="admin-intro">
-      השינויים נשמרים בדפדפן הזה בלבד. כדי שהאורחים יראו אותם, יש לפרסם את הקובץ.
+      עריכה נשמרת מיד במכשיר. לחיצה על "פרסם לכולם" כותבת את התפריט
+      ל-GitHub, והאורחים רואים אותו תוך כדקה.
     </p>
 
     <div class="field-row">
@@ -286,18 +287,34 @@
     <div id="editor"></div>
 
     <div class="actions">
-      <button class="btn btn-primary" id="btn-copy">העתק קובץ</button>
-      <button class="btn" id="btn-download">הורד menu.json</button>
+      <button class="btn btn-primary" id="btn-publish">פרסם לכולם</button>
       <button class="btn" id="btn-reset">בטל שינויים</button>
     </div>
     <p class="status" id="status" role="status"></p>
 
     <div class="field-row">
-      <label for="out">התוכן לפרסום</label>
-      <textarea id="out" readonly></textarea>
+      <label for="f-token">טוקן GitHub</label>
+      <input type="password" id="f-token" autocomplete="off" placeholder="ghp_... או github_pat_...">
       <p class="note">
-        לפרסום: פתחו את <strong>menu.json</strong> במאגר ב-GitHub, לחצו על העיפרון,
-        הדביקו את התוכן ושמרו. הדף מתעדכן תוך כדקה. הכתובת וה-QR לא משתנים.
+        נשמר במכשיר הזה בלבד, ונשלח רק ל-GitHub. צרו טוקן מסוג
+        <strong>Fine-grained</strong>, למאגר <strong>dinner-menu</strong> בלבד,
+        עם הרשאת <strong>Contents: Read and write</strong>, ותאריך תפוגה קצר.
+      </p>
+      <div class="actions">
+        <button class="btn btn-quiet" id="btn-forget">מחק טוקן מהמכשיר</button>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <label for="out">גיבוי ידני</label>
+      <textarea id="out" readonly></textarea>
+      <div class="actions">
+        <button class="btn" id="btn-copy">העתק</button>
+        <button class="btn" id="btn-download">הורד menu.json</button>
+      </div>
+      <p class="note">
+        אם הפרסום נכשל: פתחו את <strong>menu.json</strong> במאגר ב-GitHub,
+        לחצו על העיפרון, הדביקו ושמרו. הכתובת וה-QR לא משתנים לעולם.
       </p>
     </div>
   </div>
@@ -309,6 +326,9 @@
   "use strict";
 
   var DRAFT_KEY = "dinner-menu-draft";
+  var TOKEN_KEY = "dinner-menu-token";
+  var REPO = { owner: "guy-honeycomb", name: "dinner-menu", path: "menu.json", branch: "main" };
+  var API = "https://api.github.com/repos/" + REPO.owner + "/" + REPO.name + "/contents/" + REPO.path;
   var data = null;
   var published = null;
 
@@ -405,7 +425,7 @@
   function say(message) {
     var box = document.getElementById("status");
     box.textContent = message;
-    setTimeout(function () { box.textContent = ""; }, 4000);
+    setTimeout(function () { box.textContent = ""; }, 6000);
   }
 
   /* ---------- tabs ---------- */
@@ -478,6 +498,11 @@
       } catch (e) { /* corrupt draft, ignore */ }
     }
 
+    try {
+      var saved = localStorage.getItem(TOKEN_KEY);
+      if (saved) { document.getElementById("f-token").value = saved; }
+    } catch (e) { /* ignore */ }
+
     document.getElementById("f-title").value = data.title || "";
     document.getElementById("f-subtitle").value = data.subtitle || "";
 
@@ -493,6 +518,82 @@
     // Both tabs are always visible. The menu is what opens first.
     showTab(location.hash === "#admin" ? "admin" : "menu");
   }
+
+  /* ---------- publishing to GitHub ---------- */
+
+  function encode(text) {
+    var bytes = new TextEncoder().encode(text);
+    var binary = "";
+    bytes.forEach(function (b) { binary += String.fromCharCode(b); });
+    return btoa(binary);
+  }
+
+  function token() { return document.getElementById("f-token").value.trim(); }
+
+  function headers() {
+    return {
+      "Authorization": "Bearer " + token(),
+      "Accept": "application/vnd.github+json",
+      "Content-Type": "application/json"
+    };
+  }
+
+  function currentSha() {
+    return fetch(API + "?ref=" + REPO.branch + "&t=" + Date.now(), { headers: headers() })
+      .then(function (r) {
+        if (r.status === 404) { return null; }          // first publish, file absent
+        if (!r.ok) { throw new Error("read " + r.status); }
+        return r.json().then(function (j) { return j.sha; });
+      });
+  }
+
+  function put(sha) {
+    var body = {
+      message: "עדכון התפריט",
+      content: encode(serialise()),
+      branch: REPO.branch
+    };
+    if (sha) { body.sha = sha; }
+
+    return fetch(API, { method: "PUT", headers: headers(), body: JSON.stringify(body) })
+      .then(function (r) {
+        if (r.ok) { return true; }
+        if (r.status === 401) { throw new Error("הטוקן שגוי או פג תוקף"); }
+        if (r.status === 403) { throw new Error("לטוקן אין הרשאת כתיבה למאגר"); }
+        if (r.status === 404) { throw new Error("המאגר לא נמצא. בדקו את הרשאות הטוקן"); }
+        if (r.status === 409 || r.status === 422) { throw new Error("CONFLICT"); }
+        return r.text().then(function (t) { throw new Error("שגיאה " + r.status + ": " + t.slice(0, 80)); });
+      });
+  }
+
+  document.getElementById("btn-publish").addEventListener("click", function () {
+    if (!token()) { say("הדביקו טוקן כדי לפרסם"); return; }
+
+    var button = this;
+    button.disabled = true;
+    say("מפרסם...");
+
+    currentSha()
+      .then(put)
+      .catch(function (e) {
+        if (e.message !== "CONFLICT") { throw e; }
+        return currentSha().then(put);                  // someone else wrote first, retry once
+      })
+      .then(function () {
+        published = clone(data);
+        try { localStorage.removeItem(DRAFT_KEY); } catch (err) { /* ignore */ }
+        try { localStorage.setItem(TOKEN_KEY, token()); } catch (err) { /* ignore */ }
+        say("פורסם! האורחים יראו תוך כדקה");
+      })
+      .catch(function (e) { say(e.message || "הפרסום נכשל"); })
+      .then(function () { button.disabled = false; });
+  });
+
+  document.getElementById("btn-forget").addEventListener("click", function () {
+    document.getElementById("f-token").value = "";
+    try { localStorage.removeItem(TOKEN_KEY); } catch (e) { /* ignore */ }
+    say("הטוקן נמחק מהמכשיר");
+  });
 
   fetch("menu.json", { cache: "no-store" })
     .then(function (r) {

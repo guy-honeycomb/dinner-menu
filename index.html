@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="The menu for tonight's dinner — courses, dishes and dietary notes.">
+<title>Dinner at Ours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; }
+  img { max-width: 100%; }
+</style>
+<style>
+  :root {
+    --ground: #E6E9E4;
+    --surface: #FBFCFA;
+    --ink: #1B211E;
+    --muted: #5F6B64;
+    --hairline: #C7CFC7;
+    --accent: #8C2733;
+    --brass: #A9853F;
+    --pill: #DCE2DB;
+
+    --display: "Bodoni Moda", "Iowan Old Style", Georgia, serif;
+    --body: "Karla", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #131715;
+      --surface: #1B211E;
+      --ink: #E9ECE6;
+      --muted: #9AA69D;
+      --hairline: #333C36;
+      --accent: #DB7B83;
+      --brass: #CBA365;
+      --pill: #262E29;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #131715;
+    --surface: #1B211E;
+    --ink: #E9ECE6;
+    --muted: #9AA69D;
+    --hairline: #333C36;
+    --accent: #DB7B83;
+    --brass: #CBA365;
+    --pill: #262E29;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sheet {
+    max-width: 34rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 6vw, 3rem) clamp(1.25rem, 5vw, 2.5rem) 4rem;
+    background: var(--surface);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 2.75rem;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .occasion {
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--brass);
+  }
+
+  .masthead h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(2.6rem, 12vw, 3.9rem);
+    line-height: 1.02;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .masthead h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .details {
+    font-size: 0.95rem;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .details span { white-space: nowrap; }
+
+  .details span + span::before {
+    content: "·";
+    margin: 0 0.55em;
+    color: var(--brass);
+  }
+
+  /* ---------- courses ---------- */
+
+  .course {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+
+  .course-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+  }
+
+  .course-head h2 {
+    font-family: var(--body);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin: 0;
+    flex: none;
+  }
+
+  .course-head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--hairline);
+  }
+
+  .serving {
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--muted);
+    flex: none;
+  }
+
+  .dishes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .dish h3 {
+    font-family: var(--display);
+    font-size: 1.42rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 0 0 0.3rem;
+    text-wrap: balance;
+  }
+
+  .dish p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.97rem;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.55rem;
+  }
+
+  .tag {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+    background: var(--pill);
+    color: var(--muted);
+  }
+
+  .tag.spice { color: var(--accent); }
+
+  /* ---------- footer ---------- */
+
+  .legend {
+    border-top: 1px solid var(--hairline);
+    padding-top: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .legend h2 {
+    font-family: var(--body);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin: 0;
+  }
+
+  .legend dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    align-items: baseline;
+  }
+
+  .legend dt {
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .legend dd { margin: 0; color: var(--muted); }
+
+  .allergy {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0;
+    font-style: italic;
+  }
+
+  .signoff {
+    text-align: center;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .sheet { background: #fff; min-height: 0; max-width: none; }
+    .dish h3 { font-size: 1.3rem; }
+  }
+</style>
+
+<div class="sheet">
+
+  <header class="masthead">
+    <p class="occasion">You are at the table</p>
+    <h1>Dinner <em>at ours</em></h1>
+    <p class="details"><span>Saturday evening</span><span>Served family style</span></p>
+  </header>
+
+  <section class="course">
+    <div class="course-head">
+      <h2>To begin</h2>
+      <span class="serving">with drinks, standing up</span>
+    </div>
+    <ul class="dishes">
+      <li class="dish">
+        <h3>Warm focaccia &amp; marinated olives</h3>
+        <p>Rosemary and coarse salt, baked this afternoon. Olives with orange peel and chili.</p>
+        <div class="tags"><span class="tag">Vegan</span></div>
+      </li>
+      <li class="dish">
+        <h3>Whipped feta with honey and thyme</h3>
+        <p>Cold, salty, sweet. Eat it with the bread.</p>
+        <div class="tags"><span class="tag">Vegetarian</span><span class="tag">Dairy</span></div>
+      </li>
+      <li class="dish">
+        <h3>Charred padrón peppers</h3>
+        <p>Blistered in olive oil and flaked salt. One in ten is hot — that is the game.</p>
+        <div class="tags"><span class="tag">Vegan</span><span class="tag">Gluten free</span><span class="tag spice">Occasionally spicy</span></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="course">
+    <div class="course-head">
+      <h2>First</h2>
+      <span class="serving">seated</span>
+    </div>
+    <ul class="dishes">
+      <li class="dish">
+        <h3>Roast tomato and fennel soup</h3>
+        <p>Slow-roasted tomatoes, basil oil, a spoon of crème fraîche on the side.</p>
+        <div class="tags"><span class="tag">Vegetarian</span><span class="tag">Gluten free</span><span class="tag">Dairy</span></div>
+      </li>
+      <li class="dish">
+        <h3>Little gem, lemon and anchovy</h3>
+        <p>Crisp leaves, sharp dressing, shaved parmesan and toasted breadcrumbs.</p>
+        <div class="tags"><span class="tag">Fish</span><span class="tag">Dairy</span></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="course">
+    <div class="course-head">
+      <h2>Main</h2>
+      <span class="serving">passed around</span>
+    </div>
+    <ul class="dishes">
+      <li class="dish">
+        <h3>Lamb shoulder, pomegranate and mint</h3>
+        <p>Six hours in the oven until it gives way to a spoon. Pan juices poured over at the table.</p>
+        <div class="tags"><span class="tag">Gluten free</span></div>
+      </li>
+      <li class="dish">
+        <h3>Herb-crusted salmon</h3>
+        <p>Whole side, dill and parsley crust, roasted lemon.</p>
+        <div class="tags"><span class="tag">Fish</span></div>
+      </li>
+      <li class="dish">
+        <h3>Aubergine and chickpea tagine</h3>
+        <p>Smoked paprika, apricots and preserved lemon. A main in its own right, not a consolation.</p>
+        <div class="tags"><span class="tag">Vegan</span><span class="tag">Gluten free</span></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="course">
+    <div class="course-head">
+      <h2>Alongside</h2>
+    </div>
+    <ul class="dishes">
+      <li class="dish">
+        <h3>Saffron rice with toasted almonds</h3>
+        <div class="tags"><span class="tag">Vegan</span><span class="tag">Gluten free</span><span class="tag">Nuts</span></div>
+      </li>
+      <li class="dish">
+        <h3>Charred broccolini, garlic and chili</h3>
+        <div class="tags"><span class="tag">Vegan</span><span class="tag">Gluten free</span><span class="tag spice">Spicy</span></div>
+      </li>
+      <li class="dish">
+        <h3>Cucumber and yoghurt salad</h3>
+        <div class="tags"><span class="tag">Vegetarian</span><span class="tag">Gluten free</span><span class="tag">Dairy</span></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="course">
+    <div class="course-head">
+      <h2>Sweet</h2>
+      <span class="serving">and coffee</span>
+    </div>
+    <ul class="dishes">
+      <li class="dish">
+        <h3>Olive oil and orange cake</h3>
+        <p>Dense, damp, dusted with icing sugar.</p>
+        <div class="tags"><span class="tag">Vegetarian</span><span class="tag">Dairy</span></div>
+      </li>
+      <li class="dish">
+        <h3>Dark chocolate tart, sea salt</h3>
+        <p>Small slices. It is richer than it looks.</p>
+        <div class="tags"><span class="tag">Vegetarian</span><span class="tag">Dairy</span></div>
+      </li>
+      <li class="dish">
+        <h3>Fresh figs and honey</h3>
+        <div class="tags"><span class="tag">Vegan</span><span class="tag">Gluten free</span></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="legend">
+    <h2>Good to know</h2>
+    <dl>
+      <dt>Vegan</dt><dd>No animal products at all</dd>
+      <dt>Vegetarian</dt><dd>No meat or fish</dd>
+      <dt>Gluten free</dt><dd>Made without wheat, barley or rye</dd>
+      <dt>Nuts</dt><dd>Contains nuts</dd>
+      <dt>Dairy</dt><dd>Contains milk, cheese or cream</dd>
+    </dl>
+    <p class="allergy">Cooked in a home kitchen, so traces of anything are possible. If you have an allergy, find the host before you start — there is a plan for you.</p>
+    <p class="signoff">Eat well.</p>
+  </section>
+
+</div>
+
+</body>
+</html>

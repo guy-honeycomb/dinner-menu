@@ -254,7 +254,7 @@
 
 <div class="sheet">
 
-  <div class="tabs" role="tablist">
+  <div class="tabs" role="tablist" id="tabs" hidden>
     <button class="tab" id="tab-menu" role="tab" aria-selected="true" aria-controls="view-menu">התפריט</button>
     <button class="tab" id="tab-admin" role="tab" aria-selected="false" aria-controls="view-admin">עריכה</button>
   </div>
@@ -489,7 +489,12 @@
     });
 
     renderMenu();
-    showTab(location.hash === "#admin" ? "admin" : "menu");
+
+    // Guests get the menu and nothing else. The editor is reachable only by
+    // asking for it in the URL (#admin), and the tab bar appears with it.
+    var wantsAdmin = location.hash === "#admin";
+    document.getElementById("tabs").hidden = !wantsAdmin;
+    showTab(wantsAdmin ? "admin" : "menu");
   }
 
   fetch("menu.json", { cache: "no-store" })
